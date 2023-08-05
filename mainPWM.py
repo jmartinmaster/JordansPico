@@ -1,3 +1,5 @@
+###Generates PWM to fade Pin 25 (Built in LED)
+
 from time import sleep
 from machine import Pin
 fr = 0
