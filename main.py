@@ -5,9 +5,7 @@ import _thread, random
 #leaving core0 to do other stuffs. Thread for core1 can 
 #be loaded to run several things as State machine runs at 0.1MHz
 #and Pico core is at 125MHz
-#This allows for PWM output on unused core without interrupting main, Core0
-
-#########Board is SparkFun RP2040 Core on SparkFun ATP Carrier#############################
+#This allows for PWM output on unused core without interupting main, Core0
 
 pins = [25, 28, 16, 17, 18, 19, 13,24 ]
 pinInt = [0,1,2,3,4,5,6,7]
@@ -19,6 +17,7 @@ sT = 0.001
 fr = 0
 max_count = 65530
 pin = 0
+value = 0
 pins[0] = PWM(Pin(25)) #G10
 pins[1] = PWM(Pin(28)) #G9
 pins[2] = PWM(Pin(16)) #G0
@@ -49,7 +48,7 @@ def setup1():
     pins[7].duty_u16(65530)
     #led.duty_u16(65530)
 
-def pinFader():
+def pinFaderUp():
     global pins
     global pinV
     global pinFV
@@ -62,7 +61,12 @@ def pinFader():
                 pinV[pin] = 255
         pins[pin].duty_u16(pinV[pin])
         sleep(pinDelay[pin]/1000)
-
+def pinFaderDown()
+    global pins
+    global pinV
+    global pinFV
+    global pin
+    global value    
     if (pinV[pin] > value):
         while (pinV[pin] > value):
             pinV[pin] = pinV[pin] - pinFV[pin]
