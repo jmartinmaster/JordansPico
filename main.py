@@ -5,7 +5,9 @@ import _thread, random
 #leaving core0 to do other stuffs. Thread for core1 can 
 #be loaded to run several things as State machine runs at 0.1MHz
 #and Pico core is at 125MHz
-#This allows for PWM output on unused core without interupting main, Core0
+#This allows for PWM output on unused core without interrupting main, Core0
+
+#########Board is SparkFun RP2040 Core on SparkFun ATP Carrier#############################
 
 pins = [25, 28, 16, 17, 18, 19, 13,24 ]
 pinInt = [0,1,2,3,4,5,6,7]
