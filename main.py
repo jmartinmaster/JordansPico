@@ -85,13 +85,13 @@ def loop():
             for x in pinInt:
                 pins[x].duty_u16(fr)
                 x = x + 1
-            sleep(pinDelay[x])
+            sleep(sT)
         while fr > 0:
             fr = fr - 100
             for x in pinInt:
                 pins[x].duty_u16(fr)
                 x = x + 1
-            sleep(pinDelay[x])
+            sleep(sT)
 setup1()
 #loop()
 second_thread = _thread.start_new_thread(loop, ())
