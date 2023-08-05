@@ -8,6 +8,8 @@ import _thread
 # and Pico core is at 125MHz
 # This alows for PWM output on unused core without interupting main, Core0
 
+############Results in a core crash locking up device until reset###############
+
 pins = [3, 5, 6, 4, 9, 10, 11, 25]
 ground = 12
 pinV = [0, 0, 0, 255, 255, 255, 255, 255]
