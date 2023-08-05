@@ -3,11 +3,9 @@ from rp2 import PIO, StateMachine, asm_pio
 from time import sleep
 import _thread
 import pio_debouncer
-#This runs PIO from Core1 outputting PWM to Pin(25)
-#leaving core0 to do other stuffs. Thread for core1 can 
-#be loaded to run several things as State machine runs at 0.1MHz
-#and Pico core is at 125MHz
-#This alows for PWM output on unused core without interupting main, Core0
+
+### duplicate of old main file for backup###
+
 
 @asm_pio(sideset_init=PIO.OUT_LOW)
 def pwm_prog():
