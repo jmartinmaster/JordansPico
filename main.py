@@ -7,7 +7,7 @@ import _thread, random
 #and Pico core is at 125MHz
 #This allows for PWM output on unused core without interupting main, Core0
 
-pins = [25, 28, 16, 17, 18, 19, 20,21 ]
+pins = [25, 28, 16, 17, 18, 19, 13,24 ]
 pinInt = [0,1,2,3,4,5,6,7]
 ground = 12
 pinV = [0, 0, 0, 255, 255, 255, 255, 255]
@@ -17,14 +17,14 @@ sT = 0.001
 fr = 0
 max_count = 65530
 pin = 0
-pins[0] = PWM(Pin(25))
-pins[1] = PWM(Pin(28))
-pins[2] = PWM(Pin(16))
-pins[3] = PWM(Pin(17))
-pins[4] = PWM(Pin(18))
-pins[5] = PWM(Pin(19))
-pins[6] = PWM(Pin(20))
-pins[7] = PWM(Pin(21))
+pins[0] = PWM(Pin(25)) #G10
+pins[1] = PWM(Pin(28)) #G9
+pins[2] = PWM(Pin(16)) #G0
+pins[3] = PWM(Pin(17)) #G1
+pins[4] = PWM(Pin(18)) #G2
+pins[5] = PWM(Pin(19)) #G3
+pins[6] = PWM(Pin(13)) #PWM0
+pins[7] = PWM(Pin(24)) #PWM1
 #led = PWM(Pin(25))
 def setup1():
     pins[0].freq(10000)
