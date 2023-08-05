@@ -8,5 +8,6 @@
     ],
     "python.analysis.extraPaths": [
         ".vscode\\Pico-W-Stub\\stubs"
-    ]
+    ],
+    "micropico.openOnStart": true
 }
