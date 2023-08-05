@@ -11,8 +11,9 @@ pins = [25, 28, 16, 17, 18, 19, 13,24 ]
 pinInt = [0,1,2,3,4,5,6,7]
 ground = 12
 pinV = [0, 0, 0, 255, 255, 255, 255, 255]
-pinFV= [random.randint(5, 10), random.randint(5, 10), random.randint(5, 10), random.randint(5, 10), random.randint(5, 10), random.randint(5, 10), random.randint(5, 10)]
-pinDelay= [random.randint(80, 120)/1000, random.randint(80, 120)/1000,random.randint(80, 120)/1000,random.randint(80, 120)/1000,random.randint(80, 120)/1000,random.randint(80, 120)/1000,random.randint(80, 120)/1000,]
+#random.randint()/1000 may generate and invalid decimal that will lock the core it running on
+pinFV= [100,120,110,130,111,120,110]
+pinDelay= [0.001,0.002,0.001,0.002,0.001,0.003,0.001]
 sT = 0.001
 fr = 0
 max_count = 65530
