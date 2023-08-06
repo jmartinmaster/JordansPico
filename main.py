@@ -1,11 +1,11 @@
 from machine import Pin,PWM
 from time import sleep
-import _thread, random
+import _thread
 #This runs PIO from Core1 outputting PWM to Pin(25)
 #leaving core0 to do other stuffs. Thread for core1 can 
 #be loaded to run several things as State machine runs at 0.1MHz
 #and Pico core is at 125MHz
-#This allows for PWM output on unused core without interupting main, Core0
+#This allows for PWM output on unused core without interrupting main, Core0
 newLock = _thread.allocate_lock()
 
 pins = [25, 28, 16, 17, 18, 19, 13,24 ]
