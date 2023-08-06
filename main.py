@@ -11,7 +11,7 @@ newLock = _thread.allocate_lock()
 pins = [25, 28, 16, 17, 18, 19, 13,24 ]
 pinInt = [0,1,2,3,4,5,6,7]
 ground = 12
-pinV = [0, 0, 0, 65530, 65530, 65530, 65530, 65530]
+pinV = [0, 0, 0, 65500, 65500, 65500, 65500, 65500]
 #random.randint()/1000 may generate and invalid decimal that will lock the core it running on
 pinFV= [100,120,110,130,111,120,110]
 pinDelay= [0.001,0.002,0.001,0.002,0.001,0.003,0.001]
@@ -41,14 +41,14 @@ def setup1():
     pins[7].freq(10000)
 
     #led.freq(1000)
-    pins[0].duty_u16(65530)
-    pins[1].duty_u16(65530)
-    pins[2].duty_u16(65530)
-    pins[3].duty_u16(65530)
-    pins[4].duty_u16(65530)
-    pins[5].duty_u16(65530)
-    pins[6].duty_u16(65530)
-    pins[7].duty_u16(65530)
+    pins[0].duty_u16(65500)
+    pins[1].duty_u16(65500)
+    pins[2].duty_u16(65500)
+    pins[3].duty_u16(65500)
+    pins[4].duty_u16(65500)
+    pins[5].duty_u16(65500)
+    pins[6].duty_u16(65500)
+    pins[7].duty_u16(65500)
     #led.duty_u16(65530)
 
 def pinFaderUp():
@@ -94,6 +94,8 @@ def loop():
     global pinInt
     while True:
         PWMLock.acquire()
+        if not PWMLock.locked():
+            return
         if PWMLock.locked():
             while fr < max_count:
                 fr = fr + 100
