@@ -21,6 +21,7 @@ max_count = 65530
 pin = 0
 value = 0
 PWMLock = newLock
+Thread_Break = newLock
 pins[0] = PWM(Pin(25)) #G10
 pins[1] = PWM(Pin(28)) #G9
 pins[2] = PWM(Pin(16)) #G0
@@ -61,10 +62,10 @@ def pinFaderUp():
     if (pinV[pin] < value):
         while (pinV[pin] < value):
             pinV[pin] = pinV[pin] + pinFV[pin]
-            if (pinV[pin] > 255):
-                pinV[pin] = 255
+            if (pinV[pin] > 65500):
+                pinV[pin] = 65500
         pins[pin].duty_u16(pinV[pin])
-        sleep(pinDelay[pin]/1000)
+        sleep(0.001)
     PWMLock.release()
 
 def pinFaderDown():
@@ -80,7 +81,7 @@ def pinFaderDown():
         if (pinV[pin] < 0 ):
             pinV[pin] = 0
         pins[pin].duty_u16(pinV[pin])
-        sleep(pinDelay[pin]/1000)
+        sleep(0.001)
     PWMLock.release()
 
 
@@ -95,6 +96,8 @@ def loop():
     while True:
         PWMLock.acquire()
         if not PWMLock.locked():
+            return
+        if Thread_Break.locked():
             return
         if PWMLock.locked():
             while fr < max_count:
@@ -113,16 +116,18 @@ def loop():
 setup1()
 #loop()
 second_thread = _thread.start_new_thread(loop, ())
-#Code past here may result in crashes
+#Code past here may result in crashes or a lockout
 pin = 0
 Thread_Break.acquire()
+if PWMLock.locked():
+    PWMLock.release()
 sleep(0.01)
 if not PWMLock.locked():
     while PWMLock.locked():
         sleep(0.1)
     value = 65500
-    second_thread = _thread.start_new_thread(pinFaderUp, ())
+    second_thread = _thread.start_new_thread(pinFaderDown, ())
     while PWMLock.locked():
         sleep(0.1)
     value = 0
-    second_thread = _thread.start_new_thread(pinFaderDown, ())
+    second_thread = _thread.start_new_thread(pinFaderUp, ())
