@@ -119,7 +119,7 @@ Thread_Break.acquire()
 sleep(0.01)
 if not PWMLock.locked():
     while PWMLock.locked():
-        sleep(0.0)
+        sleep(0.1)
     value = 65500
     second_thread = _thread.start_new_thread(pinFaderUp, ())
     while PWMLock.locked():
