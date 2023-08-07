@@ -1,14 +1,11 @@
 {
 	"folders": [
 		{
-			"path": ".."
-		},
-		{
-			"name": "Pico (W) Remote Workspace",
-			"uri": "pico:"
+			"path": "."
 		}
 	],
 	"settings": {
-		"picowgo.syncFolder": ""
+		"micropico.syncFolder": "",
+		"wolf.disableHotModeWarning": true
 	}
 }

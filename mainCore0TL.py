@@ -90,8 +90,12 @@ def pinFdown():
     global pin
     global value
 
+    while slock.locked():
+        sleep(0.001)
+
     slock.acquire()
-    if pinV[pin] > value & thread_break.locked():
+
+    if pinV[pin] > value:
         while pinV[pin] > value:
             pinV[pin] = pinV[pin] - pinFV[pin]
         if pinV[pin] < 0:
@@ -137,44 +141,37 @@ def loop1():
 setup1()
 # loop()
 pin = 7
-value = 0
-second_thread = _thread.start_new_thread(pinFdown, ())
+value = 65530
+second_thread = _thread.start_new_thread(pinFup, ())
 
 while slock.locked():
     sleep(0.001)
 slock.acquire()
-value = 65530
+value = 0
 slock.release()
+
+second_thread = _thread.start_new_thread(pinFdown, ())
+
 while slock.locked():
     sleep(0.001)
-if not slock.locked():
-    second_thread = _thread.start_new_thread(pinFup, ())
-while slock.locked():
-    sleep(0.001)
-slock.acquire()
+slock.acquire(1, -1)
 value = 20000
 slock.release()
-while slock.locked():
-    sleep(0.001)
-if not slock.locked(): #core1 unlocked before finished
-    second_thread = _thread.start_new_thread(pinFdown, ())
+
+second_thread = _thread.start_new_thread(pinFup, ())
+
 while slock.locked():
     sleep(0.001)
 slock.acquire(1, -1)
 value = 40000
 slock.release()
 
+second_thread = _thread.start_new_thread(pinFdown, ())
+
 while slock.locked():
     sleep(0.001)
-if not slock.locked():
-    second_thread = _thread.start_new_thread(pinFup, ())
-while slock.locked():
-    sleep(0.001)
-    
 slock.acquire(1, -1)
 value = 0
 slock.release()
-while slock.locked():
-    sleep(0.001)
-    
+
 second_thread = _thread.start_new_thread(loop1, ())
