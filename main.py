@@ -94,39 +94,18 @@ def loop():
     global max_count
     global pinInt
     while True:
-        PWMLock.acquire()
-        if not PWMLock.locked():
-            return
-        if Thread_Break.locked():
-            return
-        if PWMLock.locked():
-            while fr < max_count:
-                fr = fr + 100
-                for x in pinInt:
-                    pins[x].duty_u16(fr)
-                    x = x + 1
-                sleep(sT)
-            while fr > 0:
-                fr = fr - 100
-                for x in pinInt:
-                    pins[x].duty_u16(fr)
-                    x = x + 1
-                sleep(sT)
-            PWMLock.release()
+        while fr < max_count:
+            fr = fr + 100
+            for x in pinInt:
+                pins[x].duty_u16(fr)
+                x = x + 1
+            sleep(sT)
+        while fr > 0:
+            fr = fr - 100
+            for x in pinInt:
+                pins[x].duty_u16(fr)
+                x = x + 1
+            sleep(sT)
 setup1()
 #loop()
 second_thread = _thread.start_new_thread(loop, ())
-##Code past here may result in crashes
-#pin = 0
-#Thread_Break.acquire()
-#sleep(0.01)
-#if not PWMLock.locked():
-#    PWMLock.release()
-#    while PWMLock.locked():
-#        sleep(0.1)
-#    value = 65500
-#    second_thread = _thread.start_new_thread(pinFaderUp, ())
-#    while PWMLock.locked():
-#        sleep(0.1)
-#    value = 0
-#    second_thread = _thread.start_new_thread(pinFaderDown, ())#

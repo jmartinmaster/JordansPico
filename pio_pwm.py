@@ -4,6 +4,7 @@
 from machine import Pin
 from rp2 import PIO, StateMachine, asm_pio
 from time import sleep
+max_count=225
 
 @asm_pio(sideset_init=PIO.OUT_LOW)
 def pwm_prog():
@@ -18,20 +19,40 @@ def pwm_prog():
     
 
 pwm_sm = StateMachine(0, pwm_prog, freq=10000000, sideset_base=Pin(25))
+pwm_sm2 = StateMachine(1, pwm_prog, freq=10000000, sideset_base=Pin(28))
+pwm_sm3 = StateMachine(2, pwm_prog, freq=10000000, sideset_base=Pin(24))
 
 pwm_sm.put(max_count)
 pwm_sm.exec("pull()")
 pwm_sm.exec("mov(isr, osr)")
 pwm_sm.active(1)
-
+pwm_sm2.put(max_count)
+pwm_sm2.exec("pull()")
+pwm_sm2.exec("mov(isr, osr)")
+pwm_sm2.active(1)
+pwm_sm3.put(max_count)
+pwm_sm3.exec("pull()")
+pwm_sm3.exec("mov(isr, osr)")
+pwm_sm3.active(1)
+x = 0
+sT = 0.05
 while True:
     while True:
-        cycle = cycle - 1
         while x < max_count:
             x = x + 10
             pwm_sm.put(x)
             sleep(sT)
+            pwm_sm2.put(x+20)
+            sleep(sT)
+            pwm_sm3.put(x+30)
+            sleep(sT)
         while x > 0:
             x = x - 10
             pwm_sm.put(x)
+            x = x - 20
+            sleep(sT)
+            pwm_sm2.put(x)
+            x = x - 30            
+            sleep(sT)
+            pwm_sm3.put(x)
             sleep(sT)
