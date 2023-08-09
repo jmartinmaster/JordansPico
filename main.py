@@ -17,7 +17,9 @@ pinFV= [100,120,110,130,111,120,110]
 pinDelay= [0.001,0.002,0.001,0.002,0.001,0.003,0.001]
 sT = 0.001
 fr = 0
+fV = 100
 max_count = 65530
+min_count = 3000
 pin = 0
 value = 0
 PWMLock = newLock
@@ -88,24 +90,48 @@ def pinFaderDown():
 def core1_village_houses():
     print("hello")
 second_thread = _thread.start_new_thread(core1_village_houses, ())
-def loop():
+def primary():
     global fr
+    global fV
     global sT
     global max_count
+    global min_count
     global pinInt
+    while fr < max_count:
+        fr = fr + fV
+        pins[pin].duty_u16(fr)
+        sleep(sT)
+    while fr > min_count:
+        fr = fr - fV
+        pins[pin].duty_u16(fr)
+        sleep(sT)
+def loop():
+    global pin
     while True:
-        while fr < max_count:
-            fr = fr + 100
-            for x in pinInt:
-                pins[x].duty_u16(fr)
-                x = x + 1
-            sleep(sT)
-        while fr > 0:
-            fr = fr - 100
-            for x in pinInt:
-                pins[x].duty_u16(fr)
-                x = x + 1
-            sleep(sT)
+        pin = 0
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 1
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 2
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 3
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 4
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 5
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 6
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
+        pin = 7
+        second_thread = _thread.start_new_thread(primary, ())
+        sleep(2)
 setup1()
-#loop()
-second_thread = _thread.start_new_thread(loop, ())
+loop()
+#second_thread = _thread.start_new_thread(loop, ())
