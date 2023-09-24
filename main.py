@@ -9,6 +9,7 @@ import _thread
 newLock = _thread.allocate_lock()
 
 pins = [25, 28, 16, 17, 18, 19, 13,24 ]
+outPutEnable = 20
 pinInt = [0,1,2,3,4,5,6,7]
 ground = 12
 pinV = [0, 0, 0, 65500, 65500, 65500, 65500, 65500]
@@ -32,6 +33,7 @@ pins[4] = PWM(Pin(18)) #G2
 pins[5] = PWM(Pin(19)) #G3
 pins[6] = PWM(Pin(13)) #PWM0
 pins[7] = PWM(Pin(24)) #PWM1
+outPutEnable = machine.Pin(20, machine.Pin.OUT) #G4
 #led = PWM(Pin(25))
 def setup1():
     pins[0].freq(10000)
@@ -90,6 +92,10 @@ def pinFaderDown():
 def core1_village_houses():
     print("hello")
 second_thread = _thread.start_new_thread(core1_village_houses, ())
+def toggleEO():
+    outPutEnable.value(0)
+    sleep(0.002)
+    outPutEnable.value(1)
 def primary():
     global fr
     global fV
@@ -109,28 +115,37 @@ def loop():
     global pin
     while True:
         pin = 0
+        toggleEO()
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 1
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 2
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 3
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 4
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 5
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 6
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
         pin = 7
         second_thread = _thread.start_new_thread(primary, ())
+        toggleEO()
         sleep(2)
 setup1()
 loop()
