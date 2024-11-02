@@ -1,6 +1,6 @@
-from machine import Pin, PWM
-from time import sleep
-import _thread
+from machine import Pin, PWM # type: ignore
+from time import sleep # type: ignore
+import _thread # type: ignore
 
 # Set up PWM pins and locks
 pins = [PWM(Pin(3)), PWM(Pin(5)), PWM(Pin(6)), PWM(Pin(4)), PWM(Pin(9)), PWM(Pin(10)), PWM(Pin(11)), PWM(Pin(25))]
