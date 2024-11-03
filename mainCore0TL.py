@@ -1,19 +1,24 @@
-from machine import Pin, PWM # type: ignore
-from time import sleep # type: ignore
-import _thread # type: ignore
-
+from machine import Pin, PWM
+from time import sleep
+import _thread
+import random
+#####################
+##Untested copilot edits and min for user input.
+#####################
 # Set up PWM pins and locks
 pins = [PWM(Pin(3)), PWM(Pin(5)), PWM(Pin(6)), PWM(Pin(4)), PWM(Pin(9)), PWM(Pin(10)), PWM(Pin(11)), PWM(Pin(25))]
+button_pins = [Pin(12, Pin.IN, Pin.PULL_UP), Pin(13, Pin.IN, Pin.PULL_UP), Pin(14, Pin.IN, Pin.PULL_UP), Pin(15, Pin.IN, Pin.PULL_UP)]
 pinV = [0, 0, 0, 255, 255, 255, 255, 255]
 pinFV = [10, 10, 10, 10, 10, 10, 10, 10]
 pinDelay = [0.001, 0.002, 0.001, 0.002, 0.002, 0.002, 0.002, 0.002]
 fr = [0] * len(pins)
-max_count = 65530
+max_counts = [65500] * len(pins)  # Array to hold max_count values for each pin
 sT = 0.001
-value = 65530
 
 slock = _thread.allocate_lock()
 thread_complete = False
+toggle_state = False  # State variable for the toggled pin
+toggle_pin = 0  # Index of the pin to be toggled
 
 def setup_pins():
     for p in pins:
@@ -33,42 +38,76 @@ def pin_fade(pin, target_value):
         pins[pin].duty_u16(pinV[pin])
         sleep(pinDelay[pin])
     slock.release()
-    thread_complete = True  # Signal task completion
+    thread_complete = True
 
 def core1_task():
-    print("hello from core1")
+    pass
 
 _thread.start_new_thread(core1_task, ())
 
 def loop():
-    global fr, max_count, sT, pins, slock, thread_complete
-    print("Loop started")
+    global fr, max_counts, sT, pins, slock, thread_complete, toggle_state, toggle_pin
+    direction = [1] * len(pins)  # Direction array for each pin
     while True:
         while slock.locked():
             sleep(0.001)
         slock.acquire()
+        
+        # Toggle pin state
+        if toggle_state:
+            pins[toggle_pin].duty_u16(65535)
+        else:
+            pins[toggle_pin].duty_u16(0)
+        toggle_state = not toggle_state
+        
         for i in range(len(pins) - 1):
-            if fr[i] < max_count:
-                fr[i] += 100
-            else:
-                fr[i] -= 100
+            max_counts[i] = dynamic_max_count_calculation(i)  # Update max_count dynamically
+            
+            if direction[i] == 1:  # Increasing
+                if fr[i] < max_counts[i]:
+                    fr[i] += 100
+                else:
+                    direction[i] = -1
+            else:  # Decreasing
+                if fr[i] > 0:
+                    fr[i] -= 100
+                else:
+                    direction[i] = 1
+
             pins[i].duty_u16(fr[i])
             sleep(sT)
+            
         slock.release()
         thread_complete = True  # Signal task completion
 
+def dynamic_max_count_calculation(pin_index):
+    return random.randint(10, 65500)  # Generate a random max_count value for the pin
 
-setup_pins() 
+def read_buttons():
+    global max_counts, sT
+    while True:
+        if not button_pins[0].value():
+            max_counts = [mc + 5000 for mc in max_counts]  # Increase max_count
+        if not button_pins[1].value():
+            max_counts = [mc - 5000 for mc in max_counts]  # Decrease max_count
+        if not button_pins[2].value():
+            sT = max(0.0001, sT - 0.0001)  # Increase speed
+        if not button_pins[3].value():
+            sT = min(0.01, sT + 0.0001)  # Decrease speed
+        sleep(0.1)
 
-def wait_for_completion(): 
-    global thread_complete 
-    while not thread_complete: 
-        sleep(0.001) 
-    thread_complete = False 
-    
-wait_for_completion() 
+setup_pins()
 
+def wait_for_completion():
+    global thread_complete
+    while not thread_complete:
+        sleep(0.001)
+    thread_complete = False
+
+# Start the loop and button reading in new threads
 _thread.start_new_thread(loop, ())
+_thread.start_new_thread(read_buttons, ())
 
 while True:
+    wait_for_completion()
     sleep(0.001)
