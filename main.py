@@ -1,137 +1,88 @@
-from machine import Pin,PWM
-from time import sleep
-import _thread
-#This runs PIO from Core1 outputting PWM to Pin(25)
-#leaving core0 to do other stuffs. Thread for core1 can 
-#be loaded to run several things as State machine runs at 0.1MHz
-#and Pico core is at 125MHz
-#This allows for PWM output on unused core without interrupting main, Core0
-newLock = _thread.allocate_lock()
+from machine import Pin, PWM # type: ignore
+from time import sleep # type: ignore
+import _thread # type: ignore
 
-pins = [25, 28, 16, 17, 18, 19, 13,24 ]
-pinInt = [0,1,2,3,4,5,6,7]
-ground = 12
-pinV = [0, 0, 0, 65500, 65500, 65500, 65500, 65500]
-#random.randint()/1000 may generate and invalid decimal that will lock the core it running on
-pinFV= [100,120,110,130,111,120,110]
-pinDelay= [0.001,0.002,0.001,0.002,0.001,0.003,0.001]
+# Set up PWM pins and locks
+pins = [PWM(Pin(25)), PWM(Pin(28)), PWM(Pin(16)), PWM(Pin(17)), PWM(Pin(18)), PWM(Pin(19)), PWM(Pin(13)), PWM(Pin(24))] 
+pinV = [0, 0, 0, 255, 255, 255, 255, 255]
+pinFV = [10, 10, 10, 10, 10, 10, 10, 10]
+pinDelay = [0.001, 0.002, 0.001, 0.002, 0.002, 0.002, 0.002, 0.002]
+fr = [0] * len(pins)
+max_count = 65500
 sT = 0.001
-fr = 0
-fV = 100
-max_count = 65530
-min_count = 3000
-pin = 0
-value = 0
-PWMLock = newLock
-Thread_Break = newLock
-pins[0] = PWM(Pin(25)) #G10
-pins[1] = PWM(Pin(28)) #G9
-pins[2] = PWM(Pin(16)) #G0
-pins[3] = PWM(Pin(17)) #G1
-pins[4] = PWM(Pin(18)) #G2
-pins[5] = PWM(Pin(19)) #G3
-pins[6] = PWM(Pin(13)) #PWM0
-pins[7] = PWM(Pin(24)) #PWM1
-#led = PWM(Pin(25))
-def setup1():
-    pins[0].freq(10000)
-    pins[1].freq(10000)
-    pins[2].freq(10000)
-    pins[3].freq(10000)
-    pins[4].freq(10000)
-    pins[5].freq(10000)
-    pins[6].freq(10000)
-    pins[7].freq(10000)
+value = 65530
 
-    #led.freq(1000)
-    pins[0].duty_u16(65500)
-    pins[1].duty_u16(65500)
-    pins[2].duty_u16(65500)
-    pins[3].duty_u16(65500)
-    pins[4].duty_u16(65500)
-    pins[5].duty_u16(65500)
-    pins[6].duty_u16(65500)
-    pins[7].duty_u16(65500)
-    #led.duty_u16(65530)
+slock = _thread.allocate_lock()
+thread_complete = False
 
-def pinFaderUp():
-    global pins
-    global pinV
-    global pinFV
-    global pin
-    global value
-    PWMLock.acquire()
-    if (pinV[pin] < value):
-        while (pinV[pin] < value):
-            pinV[pin] = pinV[pin] + pinFV[pin]
-            if (pinV[pin] > 65500):
-                pinV[pin] = 65500
-        pins[pin].duty_u16(pinV[pin])
+def setup_pins():
+    for p in pins:
+        p.freq(10000)
+        p.duty_u16(65530)
+
+def pin_fade(pin, target_value):
+    global pins, pinV, pinFV, slock, thread_complete
+    print("Pin fade started")
+    while slock.locked():
         sleep(0.001)
-    PWMLock.release()
-
-def pinFaderDown():
-    global pins
-    global pinV
-    global pinFV
-    global pin
-    global value    
-    PWMLock.acquire()
-    if (pinV[pin] > value):
-        while (pinV[pin] > value):
-            pinV[pin] = pinV[pin] - pinFV[pin]
-        if (pinV[pin] < 0 ):
-            pinV[pin] = 0
+    slock.acquire()
+    while pinV[pin] != target_value:
+        if pinV[pin] < target_value:
+            pinV[pin] = min(pinV[pin] + pinFV[pin], 65530)
+        else:
+            pinV[pin] = max(pinV[pin] - pinFV[pin], 0)
         pins[pin].duty_u16(pinV[pin])
-        sleep(0.001)
-    PWMLock.release()
+        sleep(pinDelay[pin])
+    slock.release()
+    thread_complete = True
+    print("Pin fade complete.")
 
+def core1_task():
+    print("hello from core1")
 
-def core1_village_houses():
-    print("hello")
-second_thread = _thread.start_new_thread(core1_village_houses, ())
-def primary():
-    global fr
-    global fV
-    global sT
-    global max_count
-    global min_count
-    global pinInt
-    while fr < max_count:
-        fr = fr + fV
-        pins[pin].duty_u16(fr)
-        sleep(sT)
-    while fr > min_count:
-        fr = fr - fV
-        pins[pin].duty_u16(fr)
-        sleep(sT)
+_thread.start_new_thread(core1_task, ())
+
 def loop():
-    global pin
+    global fr, max_count, sT, pins, slock, thread_complete
+    print("Loop started")
+    direction = 1  # 1 for up, -1 for down
     while True:
-        pin = 0
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 1
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 2
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 3
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 4
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 5
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 6
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-        pin = 7
-        second_thread = _thread.start_new_thread(primary, ())
-        sleep(2)
-setup1()
-loop()
-#second_thread = _thread.start_new_thread(loop, ())
+        while slock.locked():
+            sleep(0.0001)
+        slock.acquire()
+        for i in range(len(pins) - 1):
+            if direction == 1:  # Increasing
+                if fr[i] < max_count:
+                    fr[i] += 900
+                else:
+                    direction = -1
+            else:  # Decreasing
+                if fr[i] > 0:
+                    fr[i] -= 900
+                else:
+                    direction = 1
+
+            pins[i].duty_u16(fr[i])
+            print(f"Pin {i} fr value: {fr[i]}")
+            sleep(sT)
+
+        print(f"Loop iteration complete, i={i}")
+        slock.release()
+        thread_complete = True  # Signal task completion
+
+
+setup_pins()
+
+def wait_for_completion():
+    global thread_complete
+    while not thread_complete:
+        sleep(0.001)
+    thread_complete = False
+
+# Start the loop in a new thread
+_thread.start_new_thread(loop, ())
+
+while True:
+    wait_for_completion()
+    # Do other tasks or just keep waiting
+    sleep(0.001)
