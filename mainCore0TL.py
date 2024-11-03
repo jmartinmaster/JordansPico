@@ -2,11 +2,10 @@ from machine import Pin, PWM
 from time import sleep
 import _thread
 import random
-#####################
-##Untested copilot edits and min for user input.
-#####################
+from spi_screen import setup_display, draw_text  # Import your display functions
+
 # Set up PWM pins and locks
-pins = [PWM(Pin(3)), PWM(Pin(5)), PWM(Pin(6)), PWM(Pin(4)), PWM(Pin(9)), PWM(Pin(10)), PWM(Pin(11)), PWM(Pin(25))]
+pins = [PWM(Pin(25)), PWM(Pin(28)), PWM(Pin(16)), PWM(Pin(17)), PWM(Pin(18)), PWM(Pin(19)), PWM(Pin(13)), PWM(Pin(24))]  
 button_pins = [Pin(12, Pin.IN, Pin.PULL_UP), Pin(13, Pin.IN, Pin.PULL_UP), Pin(14, Pin.IN, Pin.PULL_UP), Pin(15, Pin.IN, Pin.PULL_UP)]
 pinV = [0, 0, 0, 255, 255, 255, 255, 255]
 pinFV = [10, 10, 10, 10, 10, 10, 10, 10]
@@ -19,6 +18,8 @@ slock = _thread.allocate_lock()
 thread_complete = False
 toggle_state = False  # State variable for the toggled pin
 toggle_pin = 0  # Index of the pin to be toggled
+
+tft = setup_display()  # Initialize the display
 
 def setup_pins():
     for p in pins:
@@ -76,7 +77,10 @@ def loop():
 
             pins[i].duty_u16(fr[i])
             sleep(sT)
-            
+
+            # Display current status on the screen
+            draw_text(tft, f"Pin {i}: {fr[i]}", 10, 10 * i)
+        
         slock.release()
         thread_complete = True  # Signal task completion
 
