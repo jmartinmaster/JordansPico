@@ -1,75 +1,73 @@
-from machine import Pin
+from machine import Pin, PWM
 from rp2 import PIO, StateMachine, asm_pio
 from time import sleep
 import random
+from shared_functions import event  # Import event from shared_functions
 
-# Define the PIO assembler code for PWM
-@asm_pio(sideset_init=PIO.OUT_LOW)
-def pwm():
-    pull(noblock)          .side(0)
-    mov(x, osr)            .side(0)
-    mov(y, osr)            .side(0)
-    label("on")
-    jmp(y_dec, "off")      .side(1)
-    jmp(x_dec, "on")       .side(0)
-    label("off")
-    nop()                  .side(0)
+# Define PWM pins
+pins = [PWM(Pin(25)), PWM(Pin(28)), PWM(Pin(16)), PWM(Pin(17)), PWM(Pin(18)), PWM(Pin(19)), PWM(Pin(13)), PWM(Pin(24))]
 
-# Initialize the PIO state machines
-sm = StateMachine(0, pwm, freq=20000, sideset_base=Pin(25))
-sm1 = StateMachine(1, pwm, freq=20000, sideset_base=Pin(28))
-# Add more state machines for other pins as needed...
+# Array to hold PWM values
+array = [0] * len(pins)
+buffer_address = id(array)  # Address of the array
 
-pinV = [0, 0, 0, 255, 255, 255, 255, 255]
-max_counts = [65500] * len(pinV)
-sT = 0.01
-increment_value = 300
-decrement_value = 300
-toggle_state = False
-toggle_pin = 0
+@asm_pio()
+def read_array():
+    pull(noblock)
+    mov(x, osr)
+    mov(y, x)
+    mov(isr, y)
+    irq(noblock, 0)
+
+@asm_pio(sideset_init=PIO.OUT_LOW, out_init=(PIO.OUT_LOW,) * 8, autopull=True, pull_thresh=32)
+def write_to_pins():
+    wrap_target()
+    pull(block)
+    out(pins, 32)  # Output the value to pins
+    wrap()
+
+# Set frequency to 2000 Hz for both state machines
+sm0 = StateMachine(0, read_array, freq=2000)
+sm1 = StateMachine(1, write_to_pins, freq=2000, sideset_base=Pin(25), out_base=Pin(25))
+
+sm0.put(buffer_address)
+sm0.active(1)
+sm1.active(1)
+
+# Define update_interval globally
+update_interval = 0.5  # Default update interval in seconds
 
 def core1_task():
-    print("Core1 task running")
+    global array
+    for i in range(len(array)):
+        array[i] = random.randint(0, 65535)  # Simpler and efficient solution
 
-def loop():
-    global pinV, max_counts, sT, toggle_state, toggle_pin, increment_value, decrement_value
-    direction = [1] * len(pinV)
+def core1_main():
+    global array, update_interval
+    direction = [1] * len(array)
     while True:
-        for i in range(len(pinV) - 1):
-            max_counts[i] = dynamic_max_count_calculation(i)
+        event.wait()  # Wait for the event to be set
+        for i in range(len(array)):
             if direction[i] == 1:
-                if pinV[i] < max_counts[i]:
-                    pinV[i] += increment_value
+                if array[i] < 65535:
+                    array[i] += 500
                 else:
                     direction[i] = -1
             else:
-                if pinV[i] > 0:
-                    pinV[i] -= decrement_value
+                if array[i] > 0:
+                    array[i] -= 500
                 else:
                     direction[i] = 1
 
-            # Send duty cycle to PIO state machine
-            if i == 0:
-                sm.put(pinV[i])
-            elif i == 1:
-                sm1.put(pinV[i])
-            # Add more cases for other state machines...
-
-            sleep(sT)
-
-        # Toggle pin state
-        if toggle_state:
-            sm1.put(65535)
-        else:
-            sm1.put(0)
-        toggle_state = not toggle_state
-
-def dynamic_max_count_calculation(pin_index):
-    return random.randint(10, 65500)
+            sm0.put(array[i])
+            sm1.put(array[i])  # Send the value to PIO1 for writing to pins
+        
+        sleep(update_interval)  # Delay before updating the array values again
+        event.clear()  # Clear the event
 
 def setup_pins():
-    sm.active(1)
-    sm1.active(1)
-    # Activate other state machines as needed...
+    for pin in pins:
+        pin.freq(10000)  # Set the PWM frequency
+    # Activate state machines for further use
 
 setup_pins()
