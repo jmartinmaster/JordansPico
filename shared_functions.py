@@ -1,7 +1,8 @@
-import _thread
+import threading
 from time import sleep
 
-slock = _thread.allocate_lock()
+# Shared event for coordinating updates between the REPL thread and worker code.
+event = threading.Event()
 thread_complete = False
 
 def wait_for_completion():
@@ -12,9 +13,7 @@ def wait_for_completion():
 
 def pin_fade(pin, target_value, pins, pinV, pinFV, pinDelay):
     global thread_complete
-    while slock.locked():
-        sleep(0.001)
-    slock.acquire()
+    event.wait()
     while pinV[pin] != target_value:
         if pinV[pin] < target_value:
             pinV[pin] = min(pinV[pin] + pinFV[pin], 65530)
@@ -22,5 +21,5 @@ def pin_fade(pin, target_value, pins, pinV, pinFV, pinDelay):
             pinV[pin] = max(pinV[pin] - pinFV[pin], 0)
         pins[pin].duty_u16(pinV[pin])
         sleep(pinDelay[pin])
-    slock.release()
     thread_complete = True
+    event.clear()
