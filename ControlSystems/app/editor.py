@@ -4,8 +4,12 @@ import tkinter as tk
 import tkinter.font as tkfont
 
 import customtkinter as ctk
-from idlelib.colorizer import ColorDelegator
-from idlelib.percolator import Percolator
+try:
+    from idlelib.colorizer import ColorDelegator
+    from idlelib.percolator import Percolator
+except ModuleNotFoundError:
+    ColorDelegator = None
+    Percolator = None
 
 
 DEDENT_TOKENS = ("return", "break", "continue", "pass", "raise")
@@ -70,9 +74,12 @@ class PythonEditor(ctk.CTkFrame):
             selectforeground=self._gutter_foreground,
         )
 
-        self.percolator = Percolator(self.text_widget)
-        self.colorizer = ColorDelegator()
-        self.percolator.insertfilter(self.colorizer)
+        self.percolator = None
+        self.colorizer = None
+        if Percolator is not None and ColorDelegator is not None:
+            self.percolator = Percolator(self.text_widget)
+            self.colorizer = ColorDelegator()
+            self.percolator.insertfilter(self.colorizer)
         self._configure_tags()
         self._bind_editor_keys()
         self._install_context_menu()
