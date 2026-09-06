@@ -41,16 +41,25 @@ This starter app gives you a desktop control panel for a MicroPython RP2040 boar
 
 ## Install
 
+On Debian or Ubuntu, install the Tk bindings first:
+
+```bash
+sudo apt-get install -y python3-tk
+```
+
+Then create a local environment and install the app dependencies:
+
 ```bash
 cd /home/jamie/Documents/Github/JordansPico/ControlSystems
-python3 -m pip install -r requirements.txt
+uv venv .venv
+uv pip install --python .venv/bin/python -r requirements.txt
 ```
 
 ## Run
 
 ```bash
 cd /home/jamie/Documents/Github/JordansPico/ControlSystems
-python3 run_control_panel.py
+.venv/bin/python run_control_panel.py
 ```
 
 ## Workflow
